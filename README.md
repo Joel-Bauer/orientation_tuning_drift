@@ -1,5 +1,6 @@
 # orientation_tuning_drift
 Code to produce figures 1 and 2 (and associated supplementary figures) from Bauer et al., 2023 (https://doi.org/10.1101/2023.09.22.558966)
+The data can be downloaded from https://gin.g-node.org/Joel-Bauer/orientation_tuning_drift
 
 ### requirements
 Code was tested on MATLAB R2018a. Please install this version to ensure compatibility. 
