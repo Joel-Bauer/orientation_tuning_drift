@@ -34,17 +34,16 @@ example_mouse = 5;
 fig_number = fig_number+1;
 fig_hand(fig_number) = figure;
 set(fig_hand(fig_number), 'Name', 'pairwise signal corr','position',[1060,740,343,248]);
-[~,~,dSvals_PS_cor,PS_cor_FIT_dS] = calc_stability(Master_ROI_prop_stability(example_mouse),'PS_cor',1,fig_number); % pairwise singal corr (implement)
+[~,~,dSvals_PS_cor,PS_cor_FIT_dS] = calc_stability(data_stability(example_mouse),'PS_cor',1,fig_number); % pairwise singal corr (implement)
 axis square
 
 % cor decay
 fig_number = fig_number+1;
 fig_hand(fig_number) = figure;
 set(fig_hand(fig_number), 'Name', 'PS TC ER corr','position',[1031,528,875,420]);
-[dTvals_PS_cor,PS_cor_FIT_dT,~,~,dTvals_PS_cor_allmice,PS_cor_FIT_dT_allmice,~,~,F_equation_PSC] = calc_stability(Master_ROI_prop_stability(mouse_group),'PS_cor',0); % pairwise singal corr (implement)
-[dTvals_TC_cor,TC_cor_FIT_dT,~,~,dTvals_TC_cor_allmice,TC_cor_FIT_dT_allmice,~,~,F_equation_TC] = calc_stability(Master_ROI_prop_stability(mouse_group),'TC_cor',0); % tuning curve corr (check code)
-[dTvals_ER_cor,ER_cor_FIT_dT,~,~,dTvals_ER_cor_allmice,ER_cor_FIT_dT_allmice,~,~,F_equation_ER] = calc_stability(Master_ROI_prop_stability(mouse_group),'ER_cor',0); % ensemble rate corr  (check code)
-% [dTvals_PV_cor,PV_cor_FIT_dT,dSvals_PV_cor,PV_cor_FIT_dS] = calc_stability(Master_ROI_prop_stability(mouse_group),'PV_cor',0); % ensemble rate corr  (check code)
+[dTvals_PS_cor,PS_cor_FIT_dT,~,~,dTvals_PS_cor_allmice,PS_cor_FIT_dT_allmice,~,~,F_equation_PSC] = calc_stability(data_stability(mouse_group),'PS_cor',0); % pairwise singal corr (implement)
+[dTvals_TC_cor,TC_cor_FIT_dT,~,~,dTvals_TC_cor_allmice,TC_cor_FIT_dT_allmice,~,~,F_equation_TC] = calc_stability(data_stability(mouse_group),'TC_cor',0); % tuning curve corr (check code)
+[dTvals_ER_cor,ER_cor_FIT_dT,~,~,dTvals_ER_cor_allmice,ER_cor_FIT_dT_allmice,~,~,F_equation_ER] = calc_stability(data_stability(mouse_group),'ER_cor',0); % ensemble rate corr  (check code)
 
 subplot(1,3,1); cla
 for i = 1:length(dTvals_PS_cor_allmice)
@@ -102,29 +101,29 @@ allmice_a = [];
 allmice_b = [];
 cell_counter = 0;
 for mouse_n = mouse_group
-    dT1idx = Master_ROI_prop_stability{(mouse_n)}(1).comp_type_mat_days==1;
-    dT20idx = Master_ROI_prop_stability{(mouse_n)}(1).comp_type_mat_days==20;
+    dT1idx = data_stability{(mouse_n)}(1).comp_type_mat_days==1;
+    dT20idx = data_stability{(mouse_n)}(1).comp_type_mat_days==20;
     dT1idx = tril(dT1idx,-1);
     dT20idx = tril(dT20idx,-1);
     dT1idx = find(dT1idx);
     dT20idx = find(dT20idx);
     
-    for celln = 1:length(Master_ROI_prop_stability{(mouse_n)})
+    for celln = 1:length(data_stability{(mouse_n)})
         cell_counter = cell_counter+1;
         
-        PO_d1_temp = Master_ROI_prop_stability{(mouse_n)}(celln).PO(1);
-        PO_d2_temp = Master_ROI_prop_stability{(mouse_n)}(celln).POdif_all(dT1idx);
-        PO_d20_temp = Master_ROI_prop_stability{(mouse_n)}(celln).POdif_all(dT20idx);
+        PO_d1_temp = data_stability{(mouse_n)}(celln).PO(1);
+        PO_d2_temp = data_stability{(mouse_n)}(celln).POdif_all(dT1idx);
+        PO_d20_temp = data_stability{(mouse_n)}(celln).POdif_all(dT20idx);
         
         allPO_d2 = cat(1,allPO_d2,...
             wrapTo180((PO_d1_temp + PO_d2_temp).*2)./2);
         allissig_d2 = cat(1,allissig_d2,...
-            Master_ROI_prop_stability{(mouse_n)}(celln).POdif_issig(dT1idx));
+            data_stability{(mouse_n)}(celln).POdif_issig(dT1idx));
         
         allPO_d20 = cat(1,allPO_d20,...
             wrapTo180((PO_d1_temp + PO_d20_temp).*2)./2);
         allissig_d20 = cat(1,allissig_d20,...
-            Master_ROI_prop_stability{(mouse_n)}(celln).POdif_issig(dT20idx));
+            data_stability{(mouse_n)}(celln).POdif_issig(dT20idx));
         
         allPO_d1a = cat(1,allPO_d1a, ones(length(dT1idx),1)*PO_d1_temp);
         allPO_d1b = cat(1,allPO_d1b, ones(length(dT20idx),1)*PO_d1_temp);
@@ -168,9 +167,9 @@ title(['n: ' num2str(n_comp) '/' num2str(n_cells) '/' num2str(n_mice)...
     ', r: ' num2str(r_cc,3) '(' num2str(p_cc,3) ')'])
 
 [~,dT_bin_labels,~,~,~,~,out]=...
-    eval_PO_stability(Master_ROI_prop_stability(mouse_group),'dT_binsize',2);
+    eval_PO_stability(data_stability(mouse_group),'dT_binsize',2);
 
-all_days = cellfun(@(x) x(1).day, Master_ROI_prop_stability(mouse_group),'UniformOutput',0);
+all_days = cellfun(@(x) x(1).day, data_stability(mouse_group),'UniformOutput',0);
 max_days = max(cellfun(@(x) max(x),all_days));
 min_days = min(cellfun(@(x) max(x),all_days));
 over_n1_days = sort(cellfun(@(x) max(x),all_days));over_n1_days=over_n1_days(end-1);
@@ -336,15 +335,15 @@ running_threshold = 2;
 counter_c=0;
 neuron_counter = 0;
 for mouse_n = 1:5
-    for cell_n = 1:length(Master_ROI_prop_stability{mouse_n})
+    for cell_n = 1:length(data_stability{mouse_n})
         included_neuron = 0;
-        vis_resp = Master_ROI_prop_stability{mouse_n}(cell_n).visually_responsive(:);
-        tuned = Master_ROI_prop_stability{mouse_n}(cell_n).Stat_tuned(:);
+        vis_resp = data_stability{mouse_n}(cell_n).visually_responsive(:);
+        tuned = data_stability{mouse_n}(cell_n).Stat_tuned(:);
         
         for tp_n=find(vis_resp&tuned,1,'first')
             if vis_resp(tp_n) & tuned(tp_n)
-                running_temp = squeeze(mean(Master_ROI_prop_stability{mouse_n}(1).all_Running_traces_stim{tp_n},1));
-                activ_temp = squeeze(mean(Master_ROI_prop_stability{mouse_n}(cell_n).all_traces_stim{tp_n},1));
+                running_temp = squeeze(mean(data_stability{mouse_n}(1).all_Running_traces_stim{tp_n},1));
+                activ_temp = squeeze(mean(data_stability{mouse_n}(cell_n).all_traces_stim{tp_n},1));
                 running_idx = running_temp>running_threshold;
                 activ_run = activ_temp';
                 activ_stil = activ_temp';
@@ -403,7 +402,7 @@ fig_hand(fig_number) = figure;
 set(fig_hand(fig_number), 'Name', 'running vs still', 'Position', [1241,558,560, 420]);
 subplot(1,1,1); cla; hold on
 [~,dT_bin_labels,~,~,~,dPOall_perint_binned,out]=...
-    eval_PO_stability(Master_ROI_prop_stability(mouse_group),'dT_binsize',2); % include all mice for across day comparison
+    eval_PO_stability(data_stability(mouse_group),'dT_binsize',2); % include all mice for across day comparison
 short_TPn = 2;
 long_TPn = 11;
 int_short = cdfplot(abs(wrapTo180(out{short_TPn}(3,:))));
@@ -429,7 +428,7 @@ title({[dT_bin_labels{short_TPn} ': p' num2str(p_short,3) ', U' num2str(tbl_shor
 
 % Approach 2
 [~,dT_bin_labels,~,~,~,~,out]=...
-    eval_PO_stability(Master_ROI_prop_stability(mouse_group),'dT_binsize',2,'max_interval',20);
+    eval_PO_stability(data_stability(mouse_group),'dT_binsize',2,'max_interval',20);
 
 clear out_nonsig dPOabs  RMI dSpeed speedmod AMI dPupil dPupil pupilmod issig dT_idx
 for i = 2:length(dT_bin_labels)
@@ -495,8 +494,8 @@ u95_norun = u95_norun-perSig_norun;
 u95_nopupil = u95_nopupil-perSig_nopupil;
 
 errorbar(1:length(perSig_all),perSig_all,l95_all,u95_all,[],[],'k')
-errorbar(1:length(perSig_norun)-0.1,perSig_norun,l95_norun,u95_norun,[],[],'r')
-errorbar(1:length(perSig_nopupil)+0.1,perSig_nopupil,l95_nopupil,u95_nopupil,[],[],'b')
+errorbar([1:length(perSig_norun)]-0.1,perSig_norun,l95_norun,u95_norun,[],[],'r')
+errorbar([1:length(perSig_nopupil)]+0.1,perSig_nopupil,l95_nopupil,u95_nopupil,[],[],'b')
 xticks(1:1:length(dT_bin_labels))
 xticklabels(dT_bin_labels(1:1:end))
 xtickangle(45)
@@ -524,8 +523,8 @@ u95_norun = u95_norun-median_norun;
 u95_nopupil = u95_nopupil-median_nopupil;
 
 errorbar(1:length(median_all),median_all,l95_all,u95_all,[],[],'k')
-errorbar(1:length(median_norun)-0.1,median_norun,l95_norun,u95_norun,[],[],'r')
-errorbar(1:length(median_nopupil)+0.1,median_nopupil,l95_nopupil,u95_nopupil,[],[],'b')
+errorbar([1:length(median_norun)]-0.1,median_norun,l95_norun,u95_norun,[],[],'r')
+errorbar([1:length(median_nopupil)]+0.1,median_nopupil,l95_nopupil,u95_nopupil,[],[],'b')
 xticks(1:1:length(dT_bin_labels))
 xticklabels(dT_bin_labels(1:1:end))
 xtickangle(45)

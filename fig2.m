@@ -85,12 +85,6 @@ for i=1:length(all_cell_filters)
         errorbar(x_val,mean_vals,errer_val,'color',colors(tp,:),'LineWidth',2); hold on
         plot(x_val,mean_vals,'color',colors(tp,:),'LineWidth',2)
         
-        colormap(gca,colors);
-        a = colorbar;
-        a.Title.String = {'Session'};
-        a.Title.FontSize = 12;
-        a.Ticks = [0:1/mintp:1-1/mintp]+1/mintp/2;
-        a.TickLabels = time_point_labels;%[1:size(PO_tuned,1)];
         set(gca,'TickDir','out'); box off; set(gca,'TickDir','out')
         xticks(-90:30:60); xlim([-100 70]);ylim([0 inf])
         xlabel([{'pref. Ori. (PO) diff.'};{'to Permitted Ori'}])
@@ -238,10 +232,10 @@ title({[num2str(sum(issig)) '/' num2str(length(issig)) ' (sig/all)'];
 %% drift and convergence as a function of time for all conditions
 % stability data
 mouse_group = [1,2,3,4,5,6];%
-all_days = cellfun(@(x) x(1).day, Master_ROI_prop_stability(mouse_group),'UniformOutput',0);
+all_days = cellfun(@(x) x(1).day, data_stability(mouse_group),'UniformOutput',0);
 
 [~,dT_bin_labels,~,~,~,dPOall_perint,out] = ...
-    eval_PO_stability(Master_ROI_prop_stability(mouse_group),'max_interval',28);
+    eval_PO_stability(data_stability(mouse_group),'max_interval',28);
 n_perint = cellfun(@(x) length(unique(x(7,:))),out(cellfun(@(x) ~isempty(x),out)));
 
 clear dPOsig_AUC dPOsig_AUC_CI dPOall_AUC dPOall_AUC_CI dPOsig_med dPOsig_med_CI dPOall_med dPOall_med_CI
@@ -279,7 +273,7 @@ mouse_group = [1 2 3 4 5 6 7 8];
 maxtp = 6;
 
 time_point_labels = {'BL1', 'BL2', 'SR1', 'SR2', 'SR3', 'SR4'};
-[~, ~, ~, comp_type_label,~,~,~,dPOall_perint] = StripeRearing_stability(Master_ROI_prop_StripeRearing(mouse_group),time_point_labels,...
+[~, ~, ~, comp_type_label,~,~,~,dPOall_perint] = StripeRearing_stability(data_orientation_deprivation(mouse_group),time_point_labels,...
     'comparison_type','BL2-All','Binning_interval' , 30,...
     'cell_filter','resp_anytime','use_only_sig_changes',0);
 
@@ -307,7 +301,7 @@ errorbar(7:7:7*(maxtp-2),dPOall_med(2:end),dPOall_med_CI(2:end,1)-dPOall_med(2:e
 mouse_group = [9 10 11 14 16 17 18];
 
 time_point_labels = {'BL1', 'BL2', 'SR1'};
-[~, ~, ~, comp_type_label,~,~,~,dPOall_perint] = StripeRearing_stability(Master_ROI_prop_StripeRearing(mouse_group),time_point_labels,...
+[~, ~, ~, comp_type_label,~,~,~,dPOall_perint] = StripeRearing_stability(data_orientation_deprivation(mouse_group),time_point_labels,...
     'comparison_type','BL2-All','Binning_interval', 30,...
     'cell_filter','resp_anytime','use_only_sig_changes',0);
 
@@ -334,15 +328,15 @@ errorbar(28,dPOall_med(2),dPOall_med_CI(2,1)-dPOall_med(2)',dPOall_med_CI(2,2)-d
 
 % now look at convergence
 mouse_group = [9 10 11 14 16 17 18];
-mean_permitted = mean(cellfun(@(x) x(1).permitted_ori,Master_ROI_prop_StripeRearing(mouse_group)));
+mean_permitted = mean(cellfun(@(x) x(1).permitted_ori,data_orientation_deprivation(mouse_group)));
 
 % stability data
 mouse_group = [1,2,3,4,5,6];%
-all_days = cellfun(@(x) x(1).day, Master_ROI_prop_stability(mouse_group),'UniformOutput',0);
+all_days = cellfun(@(x) x(1).day, data_stability(mouse_group),'UniformOutput',0);
 min_days = min(cellfun(@(x) max(x),all_days));
 max_days = max(cellfun(@(x) max(x),all_days));
 [~,dT_bin_labels,conTOdiv,conTOdiv_CI] = ...
-    eval_PO_stability(Master_ROI_prop_stability(mouse_group),'PO_relative',mean_permitted,...
+    eval_PO_stability(data_stability(mouse_group),'PO_relative',mean_permitted,...
     'use_only_sig_changes',0,'max_interval',max_days-1);
 
 fig_number = fig_number+1;
@@ -355,11 +349,11 @@ scatter(find(n_perint>3)-1,[conTOdiv{n_perint>3}],'k','filled');
 
 % 7 day stripe rearing
 mouse_group = [1 2 3 4 5 6 7 8];
-maxtp = 6; %max(cellfun(@(x) size(x(1).date,1),Master_ROI_prop_StripeRearing(mouse_group))); %
-mintp = 6; %min(cellfun(@(x) size(x(1).date,1),Master_ROI_prop_StripeRearing(mouse_group))); %
+maxtp = 6; %max(cellfun(@(x) size(x(1).date,1),data_orientation_deprivation(mouse_group))); %
+mintp = 6; %min(cellfun(@(x) size(x(1).date,1),data_orientation_deprivation(mouse_group))); %
 
 time_point_labels = {'BL1', 'BL2', 'SR1', 'SR2', 'SR3', 'SR4'};
-[~, ~, ~, ~,conTOdiv,conTOdiv_CI] = StripeRearing_stability(Master_ROI_prop_StripeRearing(mouse_group),time_point_labels,...
+[~, ~, ~, ~,conTOdiv,conTOdiv_CI] = StripeRearing_stability(data_orientation_deprivation(mouse_group),time_point_labels,...
     'comparison_type','BL2-All','Binning_interval' , 30,...
     'cell_filter','resp_anytime','use_only_sig_changes',0);
 
@@ -374,7 +368,7 @@ maxtp = 3;
 mintp = 3;
 
 time_point_labels = {'BL1', 'BL2', 'SR1'};
-[~, ~, ~, ~,conTOdiv,conTOdiv_CI] = StripeRearing_stability(Master_ROI_prop_StripeRearing(mouse_group),time_point_labels,...
+[~, ~, ~, ~,conTOdiv,conTOdiv_CI] = StripeRearing_stability(data_orientation_deprivation(mouse_group),time_point_labels,...
     'comparison_type','BL2-All','Binning_interval' , 30,...
     'cell_filter','resp_anytime','use_only_sig_changes',0);
 figure(203);
@@ -409,7 +403,7 @@ for SRdays = 1:2
     time_point_labels = {'BL1', 'BL2', 'SR1'};
     
     % single cell recovery
-    [~, ~, ~, comp_type_label,conTOdiv,conTOdiv_CI,~,~,data_out_all] = StripeRearing_stability(Master_ROI_prop_StripeRearing(mouse_group),time_point_labels,...
+    [~, ~, ~, comp_type_label,conTOdiv,conTOdiv_CI,~,~,data_out_all] = StripeRearing_stability(data_orientation_deprivation(mouse_group),time_point_labels,...
         'comparison_type','Sequential','Binning_interval' , 30,...
         'cell_filter','resp_anytime','use_only_sig_changes',0);
     
@@ -529,22 +523,22 @@ set(fig_hand(fig_number), 'Name', 'recovery population effect', 'Position', [155
 clear PO_bin_frac_sig_ofTuned
 ax = [];
 for mouse_n = mouse_group
-    if ~isempty(Master_ROI_prop_StripeRearing{mouse_n})
-        [PO_to_PrefO_count_per_mouse_bin90{mouse_n},~] = StripeRearing_stability(Master_ROI_prop_StripeRearing(mouse_n),time_point_labels(1:mintp),...
+    if ~isempty(data_orientation_deprivation{mouse_n})
+        [PO_to_PrefO_count_per_mouse_bin90{mouse_n},~] = StripeRearing_stability(data_orientation_deprivation(mouse_n),time_point_labels(1:mintp),...
             'comparison_type','BL2-All','Binning_interval' , 90,...
             'cell_filter','resp_anytime','use_only_sig_changes',0);
-        [PO_to_PrefO_count_per_mouse_bin30{mouse_n},~] = StripeRearing_stability(Master_ROI_prop_StripeRearing(mouse_n),time_point_labels(1:mintp),...
+        [PO_to_PrefO_count_per_mouse_bin30{mouse_n},~] = StripeRearing_stability(data_orientation_deprivation(mouse_n),time_point_labels(1:mintp),...
             'comparison_type','BL2-All','Binning_interval' , 30,...
             'cell_filter','resp_anytime','use_only_sig_changes',0);
         
         if i == 1 % get
-            [~,~,PO_bin_frac_sig_ofTuned{mouse_n}] = StripeRearing_stability(Master_ROI_prop_StripeRearing(mouse_n),time_point_labels(1:mintp),...
+            [~,~,PO_bin_frac_sig_ofTuned{mouse_n}] = StripeRearing_stability(data_orientation_deprivation(mouse_n),time_point_labels(1:mintp),...
                 'comparison_type','BL2-All','Binning_interval' , 90,...
                 'cell_filter','resp_anytime','use_only_sig_changes',0);
         end
     end
 end
-[PO_to_PrefO_count,PO_bin_centers] = StripeRearing_stability(Master_ROI_prop_StripeRearing(mouse_group),time_point_labels(1:mintp),...
+[PO_to_PrefO_count,PO_bin_centers] = StripeRearing_stability(data_orientation_deprivation(mouse_group),time_point_labels(1:mintp),...
     'comparison_type','BL2-All','Binning_interval', 90,...
     'cell_filter','resp_anytime','use_only_sig_changes',0);
 
@@ -578,12 +572,7 @@ for tp = [idx_BL2 SR_idx RE_idx]
     
     errorbar([-90:30:60],mean(cat(1,all_dist{:})).*100,std(cat(1,all_dist{:}).*100)./sqrt(length(mouse_group)),'color',colors(tp,:),'LineWidth',2); hold on
     plot([-90:30:60],mean(cat(1,all_dist{:}).*100,1),'color',colors(tp,:),'LineWidth',2)
-    colormap(gca,colors);
-    a = colorbar;
-    a.Title.String = {'Session'};
-    a.Title.FontSize = 12;
-    a.Ticks = [0:1/mintp:1-1/mintp]+1/mintp/2;
-    a.TickLabels = time_point_labels;%[1:size(PO_tuned,1)];
+    
     set(gca,'TickDir','out'); box off; set(gca,'TickDir','out')
     xticks([-90:30:60]); xlim([-100 70]);ylim([0 inf])
     xlabel([{'pref. Ori. (PO) diff.'};{'to Permitted Ori'}])
