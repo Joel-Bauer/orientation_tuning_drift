@@ -53,12 +53,12 @@ for i=1:length(all_cell_filters)
             [PO_to_PrefO_count_per_mouse_bin90{mouse_n},~] = StripeRearing_stability(Master_ROI_prop_StripeRearing(mouse_n),time_point_labels(1:mintp),...
                 'comparison_type','BL2-All','Binning_interval' , 90,...
                 'cell_filter',apply_cell_filter,'use_only_sig_changes',0);
-            [PO_to_PrefO_count_per_mouse_bin30{mouse_n},~] = StripeRearing_stability(Master_ROI_prop_StripeRearing(mouse_n),time_point_labels(1:mintp),...
+            [PO_to_PrefO_count_per_mouse_bin30{mouse_n},~] = StripeRearing_stability(data_orientation_deprivation(mouse_n),time_point_labels(1:mintp),...
                 'comparison_type','BL2-All','Binning_interval' , 30,...
                 'cell_filter',apply_cell_filter,'use_only_sig_changes',0);
             
             if i == 1 % get
-                [~,~,PO_bin_frac_sig_ofTuned{mouse_n}] = StripeRearing_stability(Master_ROI_prop_StripeRearing(mouse_n),time_point_labels(1:mintp),...
+                [~,~,PO_bin_frac_sig_ofTuned{mouse_n}] = StripeRearing_stability(data_orientation_deprivation(mouse_n),time_point_labels(1:mintp),...
                     'comparison_type','BL2-All','Binning_interval' , 90,...
                     'cell_filter',apply_cell_filter,'use_only_sig_changes',0);
             end
@@ -129,21 +129,21 @@ for i=1:length(all_cell_filters)
 end
 linkaxes(ax2(1:2))
 
-all_POs = cellfun(@(x) [x.PO],Master_ROI_prop_StripeRearing([mouse_group]),'UniformOutput', false);
+all_POs = cellfun(@(x) [x.PO],data_orientation_deprivation([mouse_group]),'UniformOutput', false);
 all_POs = cat(2,all_POs{:});
 clear all_vt all_vr
 for mouse_n = mouse_group
-    temp = arrayfun(@(x) x.visually_responsive',Master_ROI_prop_StripeRearing{mouse_n},'UniformOutput', 0);
+    temp = arrayfun(@(x) x.visually_responsive',data_orientation_deprivation{mouse_n},'UniformOutput', 0);
     all_vr{mouse_n} = cat(2,temp{:});
-    temp = arrayfun(@(x) x.Stat_tuned',Master_ROI_prop_StripeRearing{mouse_n},'UniformOutput', 0);
+    temp = arrayfun(@(x) x.Stat_tuned',data_orientation_deprivation{mouse_n},'UniformOutput', 0);
     all_vt{mouse_n} = cat(1,temp{:})';
 end
 all_vr = logical(cat(2,all_vr{:}));
 all_vt = cat(2,all_vt{:});
 all_POs(~all_vr | ~all_vt)=nan;
 
-all_permittedOri = cellfun(@(x) [x.permitted_ori],Master_ROI_prop_StripeRearing(mouse_group),'UniformOutput', false);
-all_POissig = cellfun(@(x) arrayfun(@(y) y.POdif_issig(2,SR_idx),x,'UniformOutput', false), Master_ROI_prop_StripeRearing(mouse_group),'UniformOutput', false);
+all_permittedOri = cellfun(@(x) [x.permitted_ori],data_orientation_deprivation(mouse_group),'UniformOutput', false);
+all_POissig = cellfun(@(x) arrayfun(@(y) y.POdif_issig(2,SR_idx),x,'UniformOutput', false), data_orientation_deprivation(mouse_group),'UniformOutput', false);
 all_permittedOri = cat(2,all_permittedOri{:});
 all_POissig = cat(2,all_POissig{:}); all_POissig = cat(2,all_POissig{:});
 all_POs_relToPerm = wrapTo180([all_POs-all_permittedOri].*2)./2;
@@ -155,7 +155,7 @@ mouse_group = [9 10 11 14 16 17 18];
 
 
 time_point_labels = {'BL1', 'BL2', 'SR1'};
-[~, ~, ~, comp_type_label,~,~,~,~,data_out] = StripeRearing_stability(Master_ROI_prop_StripeRearing(mouse_group),time_point_labels,...
+[~, ~, ~, comp_type_label,~,~,~,~,data_out] = StripeRearing_stability(data_orientation_deprivation(mouse_group),time_point_labels,...
     'comparison_type','BL2-All','Binning_interval' , 30,...
     'cell_filter','resp_anytime','use_only_sig_changes',0);
 for IT_bin = 1:length(data_out)
