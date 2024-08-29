@@ -19,6 +19,7 @@ addParameter(p, 'startPO_sig_frac' , 0)
 addParameter(p, 'max_interval' , max(cellfun(@(x) max(x(1).day), data)))
 addParameter(p, 'PO_relative' , [])
 addParameter(p, 'use_only_sig_changes', 1)
+addParameter(p, 'roi_corr_threshold', [])
 
 parse(p, varargin{:})
 names = fieldnames(p.Results);
@@ -47,6 +48,14 @@ for mouse_n = 1:length(data)
     catch
         mouse_pupilsize{mouse_n}.all_Pupilsize_traces_stim = [];
         mouse_pupilsize{mouse_n}.all_Pupilsize_traces_poststim = [];
+    end
+end
+
+% kick cells with low roi correlation
+if ~isempty(roi_corr_threshold)
+    for mouse_n = 1:length(data)
+        idx_filter = cellfun(@(x) any(any(x<roi_corr_threshold)),{data{mouse_n}.ROI_correlations});
+        data{mouse_n} = data{mouse_n}(find(~idx_filter));
     end
 end
 

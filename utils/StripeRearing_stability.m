@@ -19,6 +19,7 @@ addParameter(p, 'comparison_type' , 'Sequential')
 addParameter(p, 'Binning_interval' , 30) 
 addParameter(p, 'use_only_sig_changes', 0)
 addParameter(p, 'permitted_ori_override',[])
+addParameter(p, 'roi_corr_threshold', [])
 
 parse(p, varargin{:})
 names = fieldnames(p.Results);
@@ -30,6 +31,14 @@ data(cellfun(@isempty, data))= [];
 
 PO_bins = (-(90+Binning_interval):Binning_interval:90) + (Binning_interval/2); % bin size 45° (rebinned)
 bin_centers = -90:Binning_interval:90-Binning_interval;
+
+% kick cells with low roi correlation
+if ~isempty(roi_corr_threshold) & roi_corr_threshold~=-1
+    for mouse_n = 1:length(data)
+        idx_filter = cellfun(@(x) any(any(x<roi_corr_threshold)),{data{mouse_n}.ROI_correlations});
+        data{mouse_n} = data{mouse_n}(find(~idx_filter));
+    end
+end
 
 % subselect cells based on filter
 if ischar(cell_filter)
@@ -61,6 +70,28 @@ if ischar(cell_filter)
             idx_filter2 = (idx_filtera&idx_filterb) & (idx_filterc|idx_filterd);
             
             data{mouse_n} = data{mouse_n}(find((idx_filter1)|(idx_filter2)));
+        end
+    elseif contains(cell_filter,'resp_and_tuned_at_BL2butnotSR')
+        idx_SR = str2num(cell_filter(end))+2;
+        for mouse_n = 1:length(data)
+            idx_filtera = cellfun(@(x) logical(x(2)),{data{mouse_n}.Stat_tuned}); % tuned at baseline
+            idx_filterb = cellfun(@(x) x(2),{data{mouse_n}.visually_responsive}); % responsive at baseline
+            idx_filterc = cellfun(@(x) ~x(idx_SR),{data{mouse_n}.Stat_tuned}); % not tuned at second timepoint
+            idx_filterd = cellfun(@(x) ~x(idx_SR),{data{mouse_n}.visually_responsive}); % not tuned at second timepoint
+            idx_filter1 = (idx_filtera&idx_filterb) & (idx_filterc|idx_filterd);
+                        
+            data{mouse_n} = data{mouse_n}(find((idx_filter1)));
+        end
+    elseif contains(cell_filter,'not_resp_and_tuned_at_BL2butatSR')
+        idx_SR = str2num(cell_filter(end))+2;
+        for mouse_n = 1:length(data)
+            idx_filtera = cellfun(@(x) ~logical(x(2)),{data{mouse_n}.Stat_tuned}); % not tuned at baseline
+            idx_filterb = cellfun(@(x) ~x(2),{data{mouse_n}.visually_responsive}); % not responsive at baseline
+            idx_filterc = cellfun(@(x) ~~x(idx_SR),{data{mouse_n}.Stat_tuned}); % tuned at second timepoint
+            idx_filterd = cellfun(@(x) ~~x(idx_SR),{data{mouse_n}.visually_responsive});
+            idx_filter1 = (idx_filtera|idx_filterb) & (idx_filterc&idx_filterd);
+                        
+            data{mouse_n} = data{mouse_n}(find((idx_filter1)));
         end
     else
         error('invalid cell filter')
@@ -382,9 +413,14 @@ for IT_bin = 1:length(unique(comp_type(~isnan(comp_type))))
     
     convergence_ = @(x) nanmedian(x);
     bin_edges = [-180:30:180];
-    convergence_boot = bootstrp(1000,convergence_,theta_change_all./2);
-    ratio_conTOdiv{IT_bin} = convergence_(theta_change_all./2);
-    ratio_conTOdiv_CI{IT_bin} = [prctile(convergence_boot,5); prctile(convergence_boot,95)];
+    try
+        convergence_boot = bootstrp(1000,convergence_,theta_change_all./2);
+        ratio_conTOdiv{IT_bin} = convergence_(theta_change_all./2);
+        ratio_conTOdiv_CI{IT_bin} = [prctile(convergence_boot,5); prctile(convergence_boot,95)];
+    catch
+        ratio_conTOdiv{IT_bin} = nan;
+        ratio_conTOdiv_CI{IT_bin} = [nan,nan];
+    end
 end
 
 
