@@ -24,11 +24,96 @@ set(groot,'DefaultColorbarFontName', 'Arial');
 set(groot,'DefaultColorbarTickDirection','out');
 set(groot,'DefaultFigureRenderer','painter');
 
+savefigs = 0;
+save_fig_loc = 'D:\stability_figures';
 fig_number = 0;
+close all
+clear fig_hand
+%% Initial and final Ori distributions per animal
+mouse_group = [9 10 11 14 16 17 18];
+color_order =     [0.6350,    0.0780,    0.1840;
+         0,    0.4470,    0.7410;
+    0.8500,    0.3250,    0.0980;
+    0.9290,    0.6940,    0.1250;
+    0.4940,    0.1840,    0.5560;
+    0.4660,    0.6740,    0.1880;
+    0.3010,    0.7450,    0.9330];
+mintp = 3;
+SR_idx = 3;
+roi_corr_threshold = -1;
+
+time_point_labels = {'BL1', 'BL2', 'SR1'};
+all_cell_filters = {'resp_anytime'};
+
+fig_number = fig_number+1;
+fig_hand(fig_number) = figure;
+set(fig_hand(fig_number), 'Name', 'SR28d population effect all animals','Position',[350,638,1158,290]);
+
+clear PO_bin_frac_sig_ofTuned PO_to_PrefO_count_per_mouse_bin90
+for i=1:length(all_cell_filters)
+    apply_cell_filter = all_cell_filters{i};
+    clear PO_to_PrefO_count_per_mouse PO_to_PrefO_count PO_bin_centers
+    
+    for mouse_n = mouse_group
+        if ~isempty(data_orientation_deprivation{mouse_n})
+            [PO_to_PrefO_count_per_mouse_bin90{mouse_n},bin_centers] = StripeRearing_stability(data_orientation_deprivation(mouse_n),time_point_labels(1:mintp),...
+                'comparison_type','BL2-All','Binning_interval' , 30,...
+                'cell_filter',apply_cell_filter,'use_only_sig_changes',0,...
+                'permitted_ori_override',0,...
+                'roi_corr_threshold',roi_corr_threshold);
+        end
+    end
+end
+
+
+ymax = 50;
+subplot(1,2,1)
+coloridx = 0;
+for mouse_n = mouse_group
+    coloridx = coloridx+1;
+    plot(bin_centers,PO_to_PrefO_count_per_mouse_bin90{mouse_n}...
+        (find(strcmp(time_point_labels,'BL2')),:),'color',color_order(coloridx,:)); hold on
+    ylim([0,ymax])
+    xlim([-95,65])
+    scatter(data_orientation_deprivation{mouse_n}(1).permitted_ori,ymax,...
+        'v','MarkerFaceColor',color_order(coloridx,:),'MarkerEdgeColor',color_order(coloridx,:))
+end
+all_mice=cellfun(@(x) x(find(strcmp(time_point_labels,'BL2')),:),PO_to_PrefO_count_per_mouse_bin90(mouse_group),'UniformOutput',0);
+plot(bin_centers,mean(cat(1,all_mice{:}),1),'k')
+box off
+xticks(bin_centers);
+ylabel('number of cells')
+title('before')
+
+
+subplot(1,2,2)
+coloridx = 0;
+for mouse_n = mouse_group
+    coloridx = coloridx+1;
+    plot(bin_centers,PO_to_PrefO_count_per_mouse_bin90{mouse_n}...
+        (find(strcmp(time_point_labels,'SR1')),:),'color',color_order(coloridx,:)); hold on
+    ylim([0,ymax])
+    xlim([-95,65])
+    scatter(data_orientation_deprivation{mouse_n}(1).permitted_ori,ymax,...
+        'v','MarkerFaceColor',color_order(coloridx,:),'MarkerEdgeColor',color_order(coloridx,:))
+end
+all_mice=cellfun(@(x) x(find(strcmp(time_point_labels,'SR1')),:),PO_to_PrefO_count_per_mouse_bin90(mouse_group),'UniformOutput',0);
+plot(bin_centers,mean(cat(1,all_mice{:}),1),'k')
+box off
+xticks(bin_centers);
+xlabel('true PO')
+ylabel('number of cells')
+title('after')
 
 %% stripe rearing population effect
 mouse_group = [9 10 11 14 16 17 18];
-
+color_order =     [0.6350,    0.0780,    0.1840;
+    0.0000,    0.4470,    0.7410;
+    0.8500,    0.3250,    0.0980;
+    0.9290,    0.6940,    0.1250;
+    0.4940,    0.1840,    0.5560;
+    0.4660,    0.6740,    0.1880;
+    0.3010,    0.7450,    0.9330];
 within_bin_ratios = 0;
 cross_animal = 1;
 
@@ -44,13 +129,12 @@ set(fig_hand(fig_number), 'Name', 'SR28d population effect', 'Position', [1,31,1
 
 clear PO_bin_frac_sig_ofTuned
 for i=1:length(all_cell_filters)
-    figure(fig_number) % select correct figure
     apply_cell_filter = all_cell_filters{i};
     clear PO_to_PrefO_count_per_mouse PO_to_PrefO_count PO_bin_centers
     
     for mouse_n = mouse_group
-        if ~isempty(Master_ROI_prop_StripeRearing{mouse_n})
-            [PO_to_PrefO_count_per_mouse_bin90{mouse_n},~] = StripeRearing_stability(Master_ROI_prop_StripeRearing(mouse_n),time_point_labels(1:mintp),...
+        if ~isempty(data_orientation_deprivation{mouse_n})
+            [PO_to_PrefO_count_per_mouse_bin90{mouse_n},~] = StripeRearing_stability(data_orientation_deprivation(mouse_n),time_point_labels(1:mintp),...
                 'comparison_type','BL2-All','Binning_interval' , 90,...
                 'cell_filter',apply_cell_filter,'use_only_sig_changes',0);
             [PO_to_PrefO_count_per_mouse_bin30{mouse_n},~] = StripeRearing_stability(data_orientation_deprivation(mouse_n),time_point_labels(1:mintp),...
@@ -73,7 +157,6 @@ for i=1:length(all_cell_filters)
     percent_change_PermOri_per_mouse = cellfun(@(x,y) (x(SR_idx,2) - x(idx_BL2,2))/(y),PO_to_PrefO_count_per_mouse_bin90(mouse_group),cellcount_BL2);
     percent_change_OrthOri_per_mouse = cellfun(@(x,y) (x(SR_idx,1) - x(idx_BL2,1))/(y),PO_to_PrefO_count_per_mouse_bin90(mouse_group),cellcount_BL2);
     
-    figure(fig_number) % select correct figure
     subplot(2,3,i); cla
     colors = [0.5 0.5 0.5;0 0 0; 1 0 0];
     for tp = [2 SR_idx] %1:mintp
@@ -96,13 +179,16 @@ for i=1:length(all_cell_filters)
     ylim([0 30])
     if i==3
         ylim([0 50])
+        
     end
-    title(apply_cell_filter,'Interpreter','none')
+    neuron_number = sum(sum(cat(3,PO_to_PrefO_count_per_mouse_bin90{:}),3),2);
+    title({apply_cell_filter;['total cells: ' num2str(neuron_number(2)) '->' num2str(neuron_number(SR_idx))]},'Interpreter','none')
     
-    figure(fig_number);  % select correct figure
     ax2(i) = subplot(2,3,i+3);
+    coloridx = 0;
     for mouse_n = 1:length(mouse_group)
-        plot([2,1],100.*[percent_change_OrthOri_per_mouse(mouse_n), percent_change_PermOri_per_mouse(mouse_n)],'color',[0.5 0.5 0.5]); hold on
+        coloridx = coloridx+1; 
+        plot([2,1],100.*[percent_change_OrthOri_per_mouse(mouse_n), percent_change_PermOri_per_mouse(mouse_n)],'color',color_order(coloridx,:)); hold on
     end
     plot([2,1],100.*[mean(percent_change_OrthOri_per_mouse), mean(percent_change_PermOri_per_mouse)],'k','LineWidth',5); hold on
     xticks([1,2]);xticklabels({'0' '90'})
@@ -147,6 +233,82 @@ all_POissig = cellfun(@(x) arrayfun(@(y) y.POdif_issig(2,SR_idx),x,'UniformOutpu
 all_permittedOri = cat(2,all_permittedOri{:});
 all_POissig = cat(2,all_POissig{:}); all_POissig = cat(2,all_POissig{:});
 all_POs_relToPerm = wrapTo180([all_POs-all_permittedOri].*2)./2;
+
+%% overall number of neurons gaining or loosing tuning
+% separate distribution of neurons gaining or loosing tuning
+% stripe rearing population effect
+mouse_group = [9 10 11 14 16 17 18];
+
+within_bin_ratios = 0;
+cross_animal = 1;
+
+mintp = 3;
+SR_idx = 3;
+
+time_point_labels = {'BL1', 'BL2', 'SR1'};
+all_cell_filters = {['resp_and_tuned_at_BL2butnotSR' num2str(SR_idx-2)],['not_resp_and_tuned_at_BL2butatSR' num2str(SR_idx-2)]};
+
+fig_number = fig_number+1;
+fig_hand(fig_number) = figure;
+set(fig_hand(fig_number), 'Name', 'SR28d neurons gained and lost tuning', 'Position', [460,430,1000,500]);
+
+clear PO_bin_frac_sig_ofTuned
+for i=1:length(all_cell_filters)
+    apply_cell_filter = all_cell_filters{i};
+    clear PO_to_PrefO_count_per_mouse PO_to_PrefO_count PO_bin_centers
+    
+    for mouse_n = mouse_group
+        if ~isempty(data_orientation_deprivation{mouse_n})
+            [PO_to_PrefO_count_per_mouse_bin90{mouse_n},~] = StripeRearing_stability(data_orientation_deprivation(mouse_n),time_point_labels(1:mintp),...
+                'comparison_type','BL2-All','Binning_interval' , 90,...
+                'cell_filter',apply_cell_filter,'use_only_sig_changes',0);
+            [PO_to_PrefO_count_per_mouse_bin30{mouse_n},~] = StripeRearing_stability(data_orientation_deprivation(mouse_n),time_point_labels(1:mintp),...
+                'comparison_type','BL2-All','Binning_interval' , 30,...
+                'cell_filter',apply_cell_filter,'use_only_sig_changes',0);
+            
+            if i == 1 % get
+                [~,~,PO_bin_frac_sig_ofTuned{mouse_n}] = StripeRearing_stability(data_orientation_deprivation(mouse_n),time_point_labels(1:mintp),...
+                    'comparison_type','BL2-All','Binning_interval' , 90,...
+                    'cell_filter',apply_cell_filter,'use_only_sig_changes',0);
+            end
+        end
+    end
+    
+    idx_BL2 = find(strcmp(time_point_labels,'BL2'));
+    change_PermOri_per_mouse = cellfun(@(x) (x(SR_idx,2) - x(idx_BL2,2)),PO_to_PrefO_count_per_mouse_bin90(mouse_group));
+    change_OrthOri_per_mouse = cellfun(@(x) (x(SR_idx,1) - x(idx_BL2,1)),PO_to_PrefO_count_per_mouse_bin90(mouse_group));
+    
+    cellcount_BL2=num2cell(cellfun(@(x)  x(idx_BL2,1) + x(idx_BL2,2), PO_to_PrefO_count_per_mouse_bin90(mouse_group)));
+    percent_change_PermOri_per_mouse = cellfun(@(x,y) (x(SR_idx,2) - x(idx_BL2,2))/(y),PO_to_PrefO_count_per_mouse_bin90(mouse_group),cellcount_BL2);
+    percent_change_OrthOri_per_mouse = cellfun(@(x,y) (x(SR_idx,1) - x(idx_BL2,1))/(y),PO_to_PrefO_count_per_mouse_bin90(mouse_group),cellcount_BL2);
+    
+    subplot(1,2,i); cla
+    colors = [0.5 0.5 0.5;0 0 0; 1 0 0];
+    clear sum_vals
+    for tp = [2 SR_idx] %1:mintp
+        all_dist = cellfun(@(x) x(tp,:), PO_to_PrefO_count_per_mouse_bin30(mouse_group),'UniformOutput', false);
+        
+        mean_vals = mean(cat(1,all_dist{:}),1);
+        sum_vals(tp) = sum(sum(cat(1,all_dist{:})));
+        errer_val = std(cat(1,all_dist{:}))./sqrt(length(mouse_group));
+        x_val = -90:30:60;
+        errorbar(x_val,mean_vals,errer_val,'color',colors(tp,:),'LineWidth',2); hold on
+        plot(x_val,mean_vals,'color',colors(tp,:),'LineWidth',2)
+        
+        set(gca,'TickDir','out'); box off; set(gca,'TickDir','out')
+        xticks(-90:30:60); xlim([-100 70]);ylim([0 inf]);
+        xlabel(['pref. Ori. (PO)'])
+        if i==1
+            ylabel({'cell count'})
+        end
+    end
+    pbaspect([1.5,0.75,0.5])
+    ylim([0 30])
+    if i==3
+        ylim([0 50])
+    end
+    title({apply_cell_filter;['total cells: ' num2str(sum_vals(2)) '->' num2str(sum_vals(SR_idx))]},'Interpreter','none')
+end
 
 %% scatter plots
 
@@ -654,3 +816,12 @@ title({['t(' num2str(STATS_paired.df) ')' num2str(STATS_paired.tstat,3) ',p=' nu
     },'Interpreter','none','FontSize',10)
 
 linkaxes(ax)
+
+%%
+if savefigs
+    mkdir([save_fig_loc '\fig2 new\'])
+    for i=1:length(fig_hand)
+        saveas(fig_hand(i),[save_fig_loc '\fig2 new\' fig_hand(i).Name],'svg')
+        saveas(fig_hand(i),[save_fig_loc '\fig2 new\' fig_hand(i).Name],'fig');
+    end
+end
